@@ -1,13 +1,13 @@
 # Hi-Lo competitivo: calculadora combinatória e visualizador interativo
 
-Implementações computacionais que acompanham o trabalho *Árvores e grafos de estados em uma
-variante competitiva de Hi-Lo* (Matemática Discreta). As referências a seções, teoremas e
+Implementações computacionais que acompanham o trabalho _Árvores e grafos de estados em uma
+variante competitiva de Hi-Lo_ (Matemática Discreta). As referências a seções, teoremas e
 tabelas são às do rascunho de 24 de outubro de 2026.
 
-| Arquivo | Linguagem | Função |
-|---|---|---|
-| `hilo_calc.py` | Python 3 (só biblioteca padrão) | Calculadora: contagens exatas por fórmula, enumeração de finais pequenos e verificação dos enunciados |
-| `visualizador.html` | HTML + JavaScript (arquivo único, sem dependências) | Visualizador: desenha a árvore de históricos e o grafo de estados e permite explorá-los |
+| Arquivo             | Linguagem                                           | Função                                                                                                |
+| ------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `hilo_calc.py`      | Python 3 (só biblioteca padrão)                     | Calculadora: contagens exatas por fórmula, enumeração de finais pequenos e verificação dos enunciados |
+| `visualizador.html` | HTML + JavaScript (arquivo único, sem dependências) | Visualizador: desenha a árvore de históricos e o grafo de estados e permite explorá-los               |
 
 As duas ferramentas implementam o mesmo modelo de forma independente. Isso é proposital: a
 concordância entre elas (e com as tabelas do trabalho) é um teste cruzado.
@@ -66,16 +66,16 @@ O arquivo tem três partes.
 
 Recebe apenas as multiplicidades $C = (C_1, \dots, C_k)$ e não constrói nenhum grafo.
 
-| Função | Resultado | Origem |
-|---|---|---|
-| `num_vertices` | $\lvert V\rvert$ | Teorema 3.3, fórmula (1) |
-| `num_terminais` | $2Nk$ | Corolário 3.4 |
-| `num_folhas` | $L = 3^N N!/\prod C_i!$ | Proposição 3.5, fórmula (3) |
-| `num_arestas` | $\lvert E\rvert$ | forma fechada da §3.3 abaixo |
-| `num_elos` | $\beta = \lvert E\rvert - \lvert V\rvert + 1$ | Proposição 3.7 |
-| `vertices_por_camada` | $\lvert V_m\rvert$ | Corolário 3.4, fórmula (2) |
-| `arestas_por_camada` | arestas que saem da camada $m$ | §3.3 |
-| `historicos_por_camada` | vértices da árvore na profundidade $m$ | §3.4 |
+| Função                  | Resultado                                     | Origem                       |
+| ----------------------- | --------------------------------------------- | ---------------------------- |
+| `num_vertices`          | $\lvert V\rvert$                              | Teorema 3.3, fórmula (1)     |
+| `num_terminais`         | $2Nk$                                         | Corolário 3.4                |
+| `num_folhas`            | $L = 3^N N!/\prod C_i!$                       | Proposição 3.5, fórmula (3)  |
+| `num_arestas`           | $\lvert E\rvert$                              | forma fechada da §3.3 abaixo |
+| `num_elos`              | $\beta = \lvert E\rvert - \lvert V\rvert + 1$ | Proposição 3.7               |
+| `vertices_por_camada`   | $\lvert V_m\rvert$                            | Corolário 3.4, fórmula (2)   |
+| `arestas_por_camada`    | arestas que saem da camada $m$                | §3.3                         |
+| `historicos_por_camada` | vértices da árvore na profundidade $m$        | §3.4                         |
 
 **Aritmética.** Tudo é feito com o `int` do Python, de precisão arbitrária. O multinomial é
 calculado como produto de binomiais, $\binom{C_1}{C_1}\binom{C_1+C_2}{C_2}\cdots$, sem
@@ -85,7 +85,7 @@ fatoriais nem divisões. Ponto flutuante só aparece na aproximação impressa d
 
 A fórmula (2) soma sobre vetores de consumo $a$ com $|a| = m$. Trocando a ordem das somas,
 
-$$|V_m| = 2m \sum_{j=1}^{k} \#\{a \in B_j : |a| = m\},$$
+$$|V_m| = 2m \sum_{j=1}^{k} \{a \in B_j : |a| = m\},$$
 
 onde $B_j$ é a caixa $1 \le a_j \le C_j$, $0 \le a_i \le C_i$. O número de vetores de uma
 caixa com soma $m$ é o coeficiente de $x^m$ no produto dos polinômios
@@ -100,12 +100,14 @@ estados; aqui ele é deduzido. O argumento abaixo é um esboço: se o grupo quis
 texto, convém redigir a demonstração completa.
 
 Pela Proposição 3.1(iii), $\deg^+(s) = 2q$, com $q$ o número de valores ainda disponíveis.
-Para um estado do bloco do vetor de consumo $a$, $q(a) = \#\{i : a_i < C_i\}$, que não
-depende de $r$ nem de $(d,t)$. O bloco tem $2|a| \cdot \#\{j : a_j \ge 1\}$ estados (Lema
+Para um estado do bloco do vetor de consumo $a$, $q(a) = \{i : a_i < C_i\}$, que não
+depende de $r$ nem de $(d,t)$. O bloco tem $2|a| \cdot \{j : a_j \ge 1\}$ estados (Lema
 3.2 e prova do Teorema 3.3). A raiz contribui com $2k$. Logo
 
-$$|E| = 2k + \sum_{a \ne 0} 4|a| \cdot \#\{j : a_j \ge 1\} \cdot \#\{i : a_i < C_i\}
-      = 2k + \sum_{(j,i)} \sum_{a \in B_{j,i}} 4|a|,$$
+$$
+|E| = 2k + \sum_{a \ne 0} 4|a| \cdot \{j : a_j \ge 1\} \cdot \{i : a_i < C_i\}
+      = 2k + \sum_{(j,i)} \sum_{a \in B_{j,i}} 4|a|,
+$$
 
 onde $B_{j,i}$ é a caixa dos vetores com $a_j \ge 1$ e $a_i \le C_i - 1$. Refletir cada
 coordenada dentro do seu intervalo é uma involução de $B_{j,i}$ que leva $|a|$ em $N - |a|$
@@ -135,16 +137,16 @@ pequenos; `--verificar` recusa $N > 10$.
 
 `verificar` enumera o grafo e testa, um a um, os enunciados da Seção 3:
 
-| Teste | Enunciado |
-|---|---|
-| $\lvert V\rvert$, $\lvert V_m\rvert$ e terminais coincidem com as fórmulas | Teorema 3.3, Corolário 3.4 |
-| toda aresta liga a camada $m$ à $m+1$ (o que dá a bipartição) | Proposição 3.1(i), Teorema 3.6 |
-| grau de saída $2q$; $3q$ pares (previsão, carta); por carta, uma aresta com 1 previsão e uma com 2 | Proposição 3.1(iii) |
-| em cada bloco (mesmas cartas e referência) os pares $(d,t)$ são exatamente os $2m$ previstos, com $t=1 \iff m-d$ par | Lema 3.2 |
-| vértices da árvore por profundidade e folhas | Proposição 3.5 |
-| $\lvert E\rvert$ e arestas por camada coincidem com a §3.3 | (resultado novo) |
-| $\beta = \sum_{v \ne o}(\deg^-(v) - 1)$ | Proposição 3.7 |
-| $\beta = 0 \iff N \le 2$; para $N \ge 3$ existe a configuração $u, v, a, b$ da Figura 1 | Teorema 3.6 |
+| Teste                                                                                                                | Enunciado                      |
+| -------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| $\lvert V\rvert$, $\lvert V_m\rvert$ e terminais coincidem com as fórmulas                                           | Teorema 3.3, Corolário 3.4     |
+| toda aresta liga a camada $m$ à $m+1$ (o que dá a bipartição)                                                        | Proposição 3.1(i), Teorema 3.6 |
+| grau de saída $2q$; $3q$ pares (previsão, carta); por carta, uma aresta com 1 previsão e uma com 2                   | Proposição 3.1(iii)            |
+| em cada bloco (mesmas cartas e referência) os pares $(d,t)$ são exatamente os $2m$ previstos, com $t=1 \iff m-d$ par | Lema 3.2                       |
+| vértices da árvore por profundidade e folhas                                                                         | Proposição 3.5                 |
+| $\lvert E\rvert$ e arestas por camada coincidem com a §3.3                                                           | (resultado novo)               |
+| $\beta = \sum_{v \ne o}(\deg^-(v) - 1)$                                                                              | Proposição 3.7                 |
+| $\beta = 0 \iff N \le 2$; para $N \ge 3$ existe a configuração $u, v, a, b$ da Figura 1                              | Teorema 3.6                    |
 
 Sobre o último teste: o grafo associado é conexo, logo é árvore se e somente se
 $\lvert E\rvert = \lvert V\rvert - 1$. E, num grafo simples e bipartido, encontrar dois
@@ -159,13 +161,13 @@ difere.
 
 ### 3.7 Resultados reproduzidos
 
-| Multiplicidades | $N$ | $\lvert V\rvert$ | $\lvert E\rvert$ | $\beta$ | terminais | folhas |
-|---|---|---|---|---|---|---|
-| (3) | 3 | 13 | 14 | 2 | 6 | 27 |
-| (1, 2) | 3 | 29 | 40 | 12 | 12 | 81 |
-| (2, 2) | 4 | 61 | 116 | 56 | 16 | 486 |
-| (2, 2, 2, 2) | 8 | 1.945 | 8.648 | 6.704 | 64 | 16.533.720 |
-| (3, 4, 4, 4, 4, 4, 4, 4, 4) | 35 | 402.187.501 | 5.549.687.518 | 5.147.500.018 | 630 | ≈ 7,83 · 10⁴⁴ |
+| Multiplicidades             | $N$ | $\lvert V\rvert$ | $\lvert E\rvert$ | $\beta$       | terminais | folhas        |
+| --------------------------- | --- | ---------------- | ---------------- | ------------- | --------- | ------------- |
+| (3)                         | 3   | 13               | 14               | 2             | 6         | 27            |
+| (1, 2)                      | 3   | 29               | 40               | 12            | 12        | 81            |
+| (2, 2)                      | 4   | 61               | 116              | 56            | 16        | 486           |
+| (2, 2, 2, 2)                | 8   | 1.945            | 8.648            | 6.704         | 64        | 16.533.720    |
+| (3, 4, 4, 4, 4, 4, 4, 4, 4) | 35  | 402.187.501      | 5.549.687.518    | 5.147.500.018 | 630       | ≈ 7,83 · 10⁴⁴ |
 
 As quatro primeiras linhas coincidem com a Tabela 3 e foram confirmadas por enumeração. Na
 última, $\lvert V\rvert$, os terminais e $L$ coincidem com a Seção 4.3; $\lvert E\rvert$ e
@@ -228,11 +230,11 @@ profundidade e cada nó interno fica centrado sobre os filhos.
 
 ### 4.5 Limites de tamanho
 
-| Constante | Valor | Efeito |
-|---|---|---|
-| `LIM_ARVORE` | 800 nós | acima disso a árvore não é desenhada (só o seu tamanho é mostrado) |
-| `LIM_DESENHO` | 700 estados | acima disso o grafo não é desenhado, mas continua enumerado |
-| `LIM_ENUM` | 20.000 estados | acima disso só as fórmulas são mostradas |
+| Constante     | Valor          | Efeito                                                             |
+| ------------- | -------------- | ------------------------------------------------------------------ |
+| `LIM_ARVORE`  | 800 nós        | acima disso a árvore não é desenhada (só o seu tamanho é mostrado) |
+| `LIM_DESENHO` | 700 estados    | acima disso o grafo não é desenhado, mas continua enumerado        |
+| `LIM_ENUM`    | 20.000 estados | acima disso só as fórmulas são mostradas                           |
 
 Exemplos: `[6,7,7]` e `[6,6,7,7]` desenham as duas representações (115 e 691 nós na árvore);
 `(2,2,2,2)` é enumerado, mas não desenhado. A árvore cresce como
