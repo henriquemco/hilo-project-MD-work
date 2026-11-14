@@ -22,8 +22,8 @@ python3 hilo_calc.py --baralho
 python3 hilo_calc.py --teste            # opcional: --nmax 8
 ```
 
-O visualizador não precisa de instalação nem de servidor: abra `visualizador.html` em um
-navegador.
+O visualizador não precisa de instalação nem de servidor: abra `index.html` em um
+navegador (os arquivos `main.js` e `style.css` precisam estar na mesma pasta).
 
 ## 2. O modelo comum
 
@@ -168,10 +168,16 @@ As quatro primeiras linhas coincidem com a Tabela 3 e foram confirmadas por enum
 $\beta$ do baralho completo são valores novos, obtidos pela fórmula da §3.3 (não é possível
 conferi-los por enumeração).
 
-## 4. Visualizador interativo (`visualizador.html`)
+## 4. Visualizador interativo (`index.html`)
+
+| Arquivo | Conteúdo |
+|---|---|
+| `index.html` | estrutura da página: controles, painéis e legenda |
+| `style.css` | aparência, com cores definidas como variáveis (tema claro e escuro) |
+| `main.js` | modelo (`transicao`, `construirGrafo`, `construirArvore`, `formulas` em `BigInt`, `arvoreGeradora`, `cicloQuatro`), disposição, desenho em SVG e eventos |
 
 A interface segue um único princípio: o objeto `app` guarda todo o estado da aplicação
-(composição, grafo, árvore, partida em andamento, estado selecionado, opções), e `render()`
+(composição, grafo, árvore, partida em andamento, estado selecionado), e `render()`
 redesenha tudo a partir dele. Cada interação altera um campo de `app` e chama `render()`.
 Não há estado escondido nos elementos da página.
 
@@ -207,8 +213,9 @@ profundidade e cada nó interno fica centrado sobre os filhos.
 - **Partida**: escolhe-se a carta revelada e a previsão; o caminho se acende no grafo e na
   árvore. O usuário escolhe também a carta porque o objetivo é percorrer o grafo de todas as
   jogadas possíveis, não simular o sorteio.
-- **Árvore geradora**: aplica a construção da Proposição 3.7 (uma aresta de entrada mantida
-  por vértice; aqui, a primeira que o descobriu) e pinta de vermelho as arestas removidas. O
-  $\beta$ "enumerado" do painel é a contagem dessas arestas.
-- **Menor ciclo**: destaca a configuração $u, v, a, b$ da Figura 1, encontrada por
-  `cicloQuatro`. Para $N \le 2$ a página informa que o grafo associado é uma árvore.
+- **β enumerado**: `arvoreGeradora` aplica a construção da Proposição 3.7 (uma aresta de
+  entrada mantida por vértice; aqui, a primeira que o descobriu), e o $\beta$ "enumerado" do
+  painel é o número de arestas fora dessa árvore.
+- **Menor ciclo**: `cicloQuatro` procura a configuração $u, v, a, b$ da Figura 1. Se ela
+  existe, o painel informa que o menor ciclo simples tem 4 arestas; para $N \le 2$, que o grafo
+  associado é uma árvore.

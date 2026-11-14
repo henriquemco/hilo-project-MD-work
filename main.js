@@ -173,29 +173,21 @@ function arvoreGeradora(grafo) {
  * Procura a configuração da Figura 1: dois estados u, v da mesma camada com
  * dois sucessores comuns a, b. No grafo associado, u–a–v–b–u é um ciclo
  * simples de quatro arestas (o menor possível, pelo Teorema 3.6).
- * @returns {{nos:string[], arestas:number[]}|null}
+ * @returns {boolean} se a configuração existe
  */
 function cicloQuatro(grafo) {
-  const { estados, camadas, arestas, indice } = grafo;
+  const { estados, camadas, arestas } = grafo;
   const suc = (k) => estados.get(k).sai.map((ia) => arestas[ia].para);
   for (const cam of camadas) {
     for (let x = 0; x < cam.length; x++) {
       const sx = new Set(suc(cam[x]));
       for (let y = x + 1; y < cam.length; y++) {
         const comuns = suc(cam[y]).filter((w) => sx.has(w));
-        if (comuns.length >= 2) {
-          const [u, v, a, b] = [cam[x], cam[y], comuns[0], comuns[1]];
-          return {
-            nos: [u, v, a, b],
-            arestas: [u + ">" + a, u + ">" + b, v + ">" + a, v + ">" + b].map(
-              (q) => indice.get(q),
-            ),
-          };
-        }
+        if (comuns.length >= 2) return true;
       }
     }
   }
-  return null;
+  return false;
 }
 
 /* Limites de tamanho (ver README, §4.5). */
@@ -231,8 +223,6 @@ const app = {
   posArvore: null,
   caminho: [], // partida em andamento: lista de jogadas {p, i}
   sel: null, // chave do estado selecionado (ou null)
-  verGeradora: false,
-  verCiclo: false,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -683,8 +673,6 @@ function renderGrafo(trilha) {
     return;
   }
   const noCaminho = new Set(trilha.estados);
-  const noCiclo = new Set(app.verCiclo && app.ciclo ? app.ciclo.nos : []);
-  const arCiclo = new Set(app.verCiclo && app.ciclo ? app.ciclo.arestas : []);
 
   let h =
     '<svg width="' +
@@ -719,16 +707,8 @@ function renderGrafo(trilha) {
       q = L.pos.get(a.para);
     let cls = "ar " + a.res,
       forte = false;
-    if (app.verGeradora && !app.geradora.has(ia)) {
-      cls += " exc";
-      forte = true;
-    }
     if (app.sel && (a.de === app.sel || a.para === app.sel)) {
       cls += " viz";
-      forte = true;
-    }
-    if (arCiclo.has(ia)) {
-      cls += " cic";
       forte = true;
     }
     if (trilha.arestas.has(ia)) {
@@ -770,7 +750,6 @@ function renderGrafo(trilha) {
   for (const [k, p] of L.pos) {
     const s = g.estados.get(k);
     let cls = "est";
-    if (noCiclo.has(k)) cls += " cic";
     if (noCaminho.has(k)) cls += " cam";
     if (k === app.sel) cls += " sel";
     else if (k === trilha.atual.key) cls += " atual";
@@ -906,20 +885,6 @@ $("cartas").addEventListener("keydown", (e) => {
   if (e.key === "Enter") construir();
 });
 $("ref").addEventListener("change", construir);
-document.querySelectorAll("[data-ex]").forEach((b) =>
-  b.addEventListener("click", () => {
-    $("cartas").value = b.dataset.ex;
-    construir();
-  }),
-);
-$("chk-ger").addEventListener("change", (e) => {
-  app.verGeradora = e.target.checked;
-  render();
-});
-$("chk-cic").addEventListener("change", (e) => {
-  app.verCiclo = e.target.checked;
-  render();
-});
 
 // Clique em um estado do grafo: seleciona (ou desmarca) o estado.
 $("grafo").addEventListener("click", (e) => {
