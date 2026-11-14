@@ -1,0 +1,575 @@
+% Fonte principal autossuficiente. Compilar com pdfLaTeX, XeLaTeX ou Tectonic.
+% As quebras de página organizam os argumentos dentro do limite de quinze páginas A4.
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{iftex}
+\ifPDFTeX\usepackage[utf8]{inputenc}\fi
+\usepackage[brazil]{babel}
+\addto\captionsbrazil{\renewcommand{\refname}{Bibliografia}}
+\usepackage{lmodern}
+\usepackage[margin=2.15cm,headheight=14pt,headsep=0.55cm,footskip=0.8cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{microtype,booktabs,array,enumitem}
+\usepackage{xcolor,tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\usepackage{fancyhdr,caption}
+\usepackage[unicode,colorlinks=true,linkcolor=blue!45!black,citecolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
+\hypersetup{pdftitle={Árvores e grafos de estados em uma variante competitiva de Hi-Lo},pdfauthor={Caio Ladislau do Couto; João Henrique Machado; Ricardo Rodrigues Tose; Miguel Vitor Pereira}}
+\urlstyle{same}
+\setlength{\parindent}{1.1em}
+\setlength{\parskip}{3pt}
+\setlength{\emergencystretch}{1.5em}
+\setlist{nosep,leftmargin=1.6em,topsep=4pt}
+\captionsetup{font=small,labelfont=bf,skip=5pt,hypcap=false}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Hi-Lo competitivo: árvores e estados}
+\fancyhead[R]{\small Matemática Discreta}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\newtheorem{proposicao}{Proposição}[section]
+\newtheorem{lema}[proposicao]{Lema}
+\newtheorem{teorema}[proposicao]{Teorema}
+\newtheorem{corolario}[proposicao]{Corolário}
+\theoremstyle{definition}
+\newtheorem{definicao}{Definição}[section]
+\newtheorem{observacao}[definicao]{Observação}
+\newcommand{\grauout}{\deg^{+}}
+\newcommand{\grauin}{\deg^{-}}
+\newcommand{\A}{\mathrm{A}}
+\newcommand{\Er}{\mathrm{E}}
+\newcommand{\destaque}[1]{\par\smallskip\noindent\textbf{#1}\enspace}
+\newcommand{\proxpagina}{\newpage}
+\raggedbottom
+
+\begin{document}
+% PÁGINA 1 ---------------------------------------------------------------
+\thispagestyle{plain}
+\begin{center}
+{\LARGE\bfseries Árvores e grafos de estados\\[3pt]
+em uma variante competitiva de Hi-Lo\par}
+\vspace{0.45cm}
+Caio Ladislau do Couto \quad João Henrique Machado\\
+Ricardo Rodrigues Tose \quad Miguel Vitor Pereira\\[6pt]
+\textbf{Professora:} Maria Soledad Aronna\\
+Matemática Discreta \quad FGV \quad Novembro de 2026
+\end{center}
+\vspace{0.15cm}
+\begin{abstract}
+Estudamos uma variante de Hi-Lo na qual dois jogadores preveem a relação entre a próxima carta e a referência atual. Um acerto pontua e conserva a vez; um erro transfere a vez. Representamos as partidas por uma árvore de históricos e reunimos históricos equivalentes em um grafo de estados. Demonstramos que esse grafo é dirigido acíclico e descrevemos, por um invariante de paridade, todos os pares de diferença de pontos e jogador da vez em cada camada. Essa descrição fornece uma fórmula fechada para o número de estados de qualquer composição inicial de cartas. Contamos também as folhas da árvore e os estados terminais. Provamos que o grafo associado é bipartido, é uma árvore exatamente quando restam no máximo duas cartas e, nos demais casos, contém um ciclo mínimo de quatro arestas. Relacionamos entradas múltiplas, árvores geradoras e arestas excedentes. Os resultados são ilustrados em finais reduzidos e aplicados ao baralho original de 36 cartas, cujo grafo, após a referência inicial, possui 402.187.501 estados. Essa contagem é obtida pela fórmula, sem construir o grafo completo.
+\end{abstract}
+\section{Introdução}
+Uma partida contém tanto uma sequência de acontecimentos quanto uma situação atual. Duas sequências diferentes podem deixar as mesmas cartas disponíveis, a mesma referência, a mesma diferença de pontos e o mesmo jogador da vez. Quando isso ocorre, as possibilidades de continuação coincidem. Podemos, portanto, estudar duas representações: uma árvore que distingue os históricos e um grafo que identifica os estados iguais.
+
+Escolhemos um jogo de cartas porque suas regras permitem definir os grafos por um procedimento explícito e, ao mesmo tempo, demonstrar resultados gerais. As perguntas centrais são: \emph{quantos estados são alcançáveis, como se compara esse número ao de históricos e quando a reunião de históricos produz ciclos no grafo associado?} Os exemplos desenvolvidos no texto mostram como as definições e as fórmulas respondem a essas perguntas em composições concretas.
+
+A parte prática do projeto é apresentada em um arquivo HTML separado, dedicado à visualização de exemplos dos grafos estudados neste relatório. As definições, demonstrações e exemplos aqui desenvolvidos fornecem a fundamentação matemática dessa visualização.
+
+A Seção~2 fixa regras, conceitos e notação. A Seção~3 apresenta os sete resultados principais e suas demonstrações. A Seção~4 desenvolve exemplos e aplica as fórmulas ao baralho completo. A Seção~5 discute o alcance dos resultados. O recorte é estrutural: contar possibilidades e estudar conexões não exige determinar uma estratégia ótima nem atribuir probabilidades aos estados.
+
+\proxpagina
+% PÁGINA 2 ---------------------------------------------------------------
+\section{Propriedades e definições básicas}
+\subsection{Regras da variante competitiva}
+O baralho original contém 36 cartas: quatro cópias de cada valor do conjunto
+\[
+R=\{2,3,\ldots,10\}.
+\]
+Os naipes e as identidades físicas das cópias não interferem no jogo. O embaralhamento é uniforme e não há reposição. Os jogadores conhecem a composição inicial e todas as cartas já reveladas, mas desconhecem a ordem das cartas ainda ocultas. As regras são:
+\begin{enumerate}
+\item Ambos começam com zero ponto. Revela-se uma carta inicial, que passa a ser a \emph{referência}, sem atribuição de ponto. Designa-se o primeiro jogador.
+\item Antes de revelar outra carta, o jogador da vez escolhe uma previsão: \emph{menor}, \emph{igual} ou \emph{maior}, sempre em relação à referência atual.
+\item Revela-se a próxima carta. Se a previsão estiver correta, o jogador recebe um ponto e mantém a vez. Caso contrário, ninguém recebe ponto e a vez passa ao adversário. Um erro não retira pontos anteriores.
+\item Em ambos os casos, a carta revelada torna-se a nova referência e deixa o estoque oculto. Repete-se o procedimento enquanto houver cartas.
+\item A última previsão também é avaliada. Em seguida, comparam-se as pontuações: vence quem tiver mais pontos, admitindo-se empate.
+\end{enumerate}
+
+\destaque{Uma partida curta.}
+Considere referência 6, cartas restantes $[6,7,7]$ e jogador 1 começando. Fixemos, para ilustrar, a ordem oculta $7,7,6$. Os jogadores não conhecem essa ordem quando escolhem suas previsões.
+\begin{center}
+\small
+\begin{tabular}{@{}ccclccc@{}}
+\toprule
+Jogada & Jogador & Referência & Previsão & Carta & Placar após & Próxima vez\\
+\midrule
+1 & 1 & 6 & maior & 7 & $1\!:\!0$ & 1\\
+2 & 1 & 7 & maior & 7 & $1\!:\!0$ & 2\\
+3 & 2 & 7 & menor & 6 & $1\!:\!1$ & 2\\
+\bottomrule
+\end{tabular}
+\captionof{table}{A igualdade na segunda jogada produz erro. A partida termina empatada.}
+\end{center}
+
+\destaque{Hipóteses essenciais às contagens.}
+Todas as três previsões são sempre permitidas, inclusive as que certamente erram. Por exemplo, com referência 10, a previsão \emph{maior} continua permitida. Estudamos todas as partidas compatíveis com as regras, sem restringir os jogadores a escolhas consideradas vantajosas. Uma carta, por sua vez, só pode ser revelada se ainda existir no estoque.
+
+A referência inicial já foi retirada \emph{antes} da primeira jogada avaliada. Assim, um baralho de 36 cartas produz 35 jogadas. Nos finais reduzidos, o número $N$ sempre designará as cartas \emph{restantes na situação inicial escolhida}, e não o tamanho do baralho anterior à referência. A raiz corresponde a essa situação, antes de qualquer nova previsão.
+
+\proxpagina
+% PÁGINA 3 ---------------------------------------------------------------
+\subsection{Vocabulário de grafos}
+Adotamos a terminologia de caminhos das anotações da disciplina~\cite{nina}. As notas de Rangel, Oliveira e Araujo~\cite{rangel} oferecem a referência complementar para digrafos, bipartição e árvores geradoras. Todos os grafos considerados aqui são finitos.
+
+\begin{definicao}[Grafos e orientações]
+Um \emph{grafo simples} $G=(V,E)$ tem conjunto de vértices $V$ e conjunto de arestas $E$ formado por pares não ordenados $\{u,v\}$ com $u\ne v$. Assim, não há laços nem arestas paralelas. Em um \emph{grafo dirigido}, $E$ é um conjunto de pares ordenados $(u,v)$, escritos $u\to v$. O \emph{grafo associado} é obtido ao esquecer as orientações.
+\end{definicao}
+
+\begin{definicao}[Caminhos, ciclos e conexidade]
+Um caminho de comprimento $\ell$ é uma sequência alternada $(u_0,e_1,u_1,\ldots,e_\ell,u_\ell)$ de vértices e arestas incidentes, admitindo repetições; para $\ell=0$, há apenas um vértice. Um caminho é \emph{simples} se não repete vértices. Um ciclo é um caminho fechado de comprimento positivo sem repetição de arestas; é \emph{simples} se só repete o vértice inicial ao final. Um grafo é \emph{conexo} se qualquer par de vértices pode ser ligado por um caminho.
+\end{definicao}
+
+Em grafos dirigidos, os caminhos respeitam o sentido das arestas. Um digrafo é \emph{acíclico} quando não possui ciclos dirigidos. Os graus $\grauin(v)$ e $\grauout(v)$ contam, respectivamente, as arestas que chegam a $v$ e as que saem de $v$.
+
+\begin{observacao}[Convenção terminológica]
+O que chamamos de caminho com possíveis repetições é denominado \emph{passeio} em diversas referências, inclusive nas notas complementares. A distinção entre caminho e caminho simples será mantida explicitamente neste texto.
+\end{observacao}
+
+\begin{definicao}[Árvores e bipartição]
+Uma \emph{árvore} é um grafo não vazio no qual existe um único caminho simples entre quaisquer dois vértices. Uma árvore \emph{com raiz} tem um vértice designado como raiz. O pai de um vértice não inicial é seu vizinho imediatamente anterior no caminho vindo da raiz; os sucessores imediatos são seus filhos. Um vértice sem filhos é uma \emph{folha}. Uma \emph{árvore geradora} de um grafo conexo é um subgrafo que contém todos os seus vértices e é uma árvore. Um grafo é \emph{bipartido} se $V$ pode ser separado em dois conjuntos disjuntos e toda aresta tem um extremo em cada conjunto.
+\end{definicao}
+
+Usaremos a equivalência elementar entre ser árvore e ser conexo sem ciclos simples. De fato, em um grafo conexo existe um caminho simples entre cada par: basta eliminar trechos entre repetições. Se houvesse dois caminhos simples distintos entre o mesmo par, um trecho de separação seguido de reencontro produziria um ciclo simples. Reciprocamente, um ciclo fornece dois caminhos simples entre dois de seus vértices.
+
+No nosso modelo, a existência de ciclos no grafo associado não contradirá a aciclicidade dirigida: percorrer um ciclo depois de apagar as setas não significa poder realizar essa sequência de jogadas.
+
+\proxpagina
+% PÁGINA 4 ---------------------------------------------------------------
+\subsection{Estados, históricos e notação}
+\begin{definicao}[Estado do jogo]
+Um estado é a tupla
+\[
+s=(c,r,d,t),\qquad c=(c_2,c_3,\ldots,c_{10}),
+\]
+na qual $c_j$ é a quantidade restante de cartas de valor $j$, $r$ é a referência atual, $d$ é a pontuação do jogador 1 menos a do jogador 2, e $t\in\{1,2\}$ indica quem joga. Escrevemos $n(s)=\sum_{j=2}^{10}c_j$. O estado é \emph{terminal} quando $n(s)=0$.
+\end{definicao}
+
+O vencedor é determinado pelo sinal final de $d$. Guardar a diferença basta para atualizar o resultado relativo: um acerto de J1 aumenta $d$ em um; um acerto de J2 o diminui em um; um erro o conserva. Não é necessário guardar as duas pontuações separadamente. Em um terminal, mantemos $r$ e $t$ na tupla por convenção, embora já não haja próxima jogada.
+
+Um \emph{histórico} registra, em ordem, cada previsão e cada valor revelado desde a raiz. Cópias do mesmo valor não são distinguidas. Na \emph{árvore de históricos}, cada histórico é um vértice, o histórico vazio é a raiz, e cada aresta acrescenta uma jogada. No \emph{grafo de estados}, cada estado alcançável aparece uma única vez e $s\to u$ é uma aresta se alguma jogada leva de $s$ a $u$. Havendo várias previsões com o mesmo sucessor, preservamos seus rótulos em uma única aresta.
+
+Por exemplo, da raiz com referência 6 e cartas $[6,7,7]$, prever \emph{menor} e revelar 7, ou prever \emph{igual} e revelar 7, são históricos diferentes. Ambos deixam $[6,7]$, referência 7, $d=0$ e $t=2$. Há dois vértices na árvore, mas um só estado no grafo. Esse estado não guarda os dois históricos dentro de si: guarda as informações comuns que bastam à continuação.
+
+\destaque{Notação para contar estados.}
+Sejam $v_1,\ldots,v_k$ os valores distintos presentes no estoque da raiz. Adotamos a seguinte notação:
+\begin{center}
+\begin{tabular}{@{}cl@{}}
+\toprule
+Símbolo & Significado\\
+\midrule
+$C_i$ & Quantidade de cartas de valor $v_i$ no estoque da raiz.\\
+$N=\sum_i C_i$ & Número de cartas restantes na raiz, após a referência.\\
+$a=(a_1,\ldots,a_k)$ & Vetor das quantidades consumidas desde essa raiz.\\
+$|a|=\sum_i a_i=m$ & Número de jogadas realizadas; camada atual.\\
+$c_{v_i}=C_i-a_i$ & Quantidade que ainda resta do valor $v_i$.\\
+$V_m$ & Conjunto dos estados alcançáveis após $m$ jogadas.\\
+\bottomrule
+\end{tabular}
+\end{center}
+Os índices $i$ numeram \emph{categorias}; $v_i$ é o \emph{valor da carta}. As coordenadas de $a$ têm posições fixas, mas não registram a ordem temporal das revelações. O símbolo $|a|$ indica soma de coordenadas; em $|V_m|$, as barras indicam cardinalidade. As categorias ausentes do estoque são omitidas, de modo que $C_i>0$.
+
+\proxpagina
+% PÁGINA 5 ---------------------------------------------------------------
+\section{Resultados principais}
+Fixamos uma raiz com diferença $d=0$, jogador 1 começando e $N$ cartas restantes. Uma diferença inicial distinta apenas translada $d$; se começa J2, a troca dos nomes dos jogadores reduz a essa convenção. As contagens e as propriedades estruturais permanecem as mesmas. A fórmula de paridade abaixo é escrita especificamente nessa convenção.
+
+\subsection{Representações, camadas e graus}
+\begin{proposicao}[Representações, camadas e graus]\label{prop:representacoes}
+Os históricos formam uma árvore com raiz. Históricos com o mesmo estado admitem as mesmas continuações e podem ser reunidos no grafo de estados. Nesse grafo:
+\begin{enumerate}[label=\roman*)]
+\item cada aresta liga a camada $m$ à camada $m+1$;
+\item todo caminho dirigido é simples, e os caminhos da raiz que não podem ser prolongados têm comprimento $N$;
+\item havendo $q$ valores distintos disponíveis, o grau de saída é $2q$, enquanto cada histórico correspondente tem $3q$ filhos na árvore.
+\end{enumerate}
+O grafo dirigido é acíclico e seu associado é conexo.
+\end{proposicao}
+
+\begin{proof}
+\textbf{A árvore.} Apagar a última jogada de um histórico não vazio produz seu único pai. Repetindo essa operação chegamos ao histórico vazio, logo a representação é conexa. Se existisse um ciclo simples, um histórico de comprimento máximo nesse ciclo teria dois vizinhos de comprimento uma unidade menor: seriam dois pais distintos. Portanto, não há ciclos simples e temos uma árvore, pela equivalência da Seção~2.2.
+
+\textbf{A reunião dos históricos.} Se dois históricos terminam em $(c,r,d,t)$, têm os mesmos valores disponíveis. Fixadas uma previsão e uma próxima carta possível, a comparação com $r$ produz o mesmo acerto ou erro. As regras atualizam igualmente as quatro componentes, dando o mesmo sucessor. Por indução no comprimento da continuação, as mesmas sequências futuras são possíveis e produzem os mesmos estados. Essa é a justificativa para a identificação.
+
+\textbf{As camadas.} Depois de $m$ jogadas, $n(s)=N-m$. Uma jogada consome exatamente uma carta; assim, toda aresta avança uma camada. Um caminho dirigido não pode repetir um vértice, pois não pode recuperar cartas. Logo, não existe ciclo dirigido. Enquanto $n(s)>0$, há carta possível e alguma previsão permitida; somente em $m=N$ um caminho vindo da raiz deixa de admitir prolongamento. Todo estado é alcançável da raiz por definição; apagando as setas, todos ficam conectados a ela.
+
+\textbf{Os graus.} Para cada um dos $q$ valores reveláveis há três previsões, dando $3q$ filhos na árvore. Exatamente uma acerta e duas erram. As duas erradas levam ao mesmo sucessor; acerto e erro levam a sucessores distintos, pois a vez é, respectivamente, conservada e trocada. Valores revelados distintos dão referências distintas. Há, portanto, exatamente $2q$ sucessores no grafo de estados. Para um terminal, $q=0$.
+\end{proof}
+
+Ao apagar as orientações, não se fundem arestas distintas: não existem setas em sentidos opostos entre os mesmos vértices, pois todas avançam uma camada. Logo, o grafo dirigido e seu associado têm as mesmas quantidades $|V|$ e $|E|$.
+
+\proxpagina
+% PÁGINA 6 ---------------------------------------------------------------
+\subsection{Paridade e pares de placar e jogador}
+Escrevemos $\A$ para acerto e $\Er$ para erro. São \emph{resultados}, não previsões. Fixada uma ordem viável das cartas, qualquer palavra de $\A$ e $\Er$ pode ocorrer em algum histórico: em cada posição há uma previsão correta e duas incorretas. Isso prova existência de históricos; não fornece uma estratégia capaz de conhecer a próxima carta.
+
+\begin{lema}[Pares de placar e jogador]\label{lem:pares}
+Após $1\le m\le N$ jogadas, para qualquer ordem viável dos valores revelados, existem exatamente $2m$ pares $(d,t)$ possíveis. As diferenças percorrem todos os inteiros de $1-m$ até $m$, e
+\[
+t=1\quad\Longleftrightarrow\quad m-d\text{ é par}.
+\]
+\end{lema}
+
+\begin{proof}
+\textbf{1. Restrição de paridade.} Na raiz, $m-d=0$ e $t=1$. Verifiquemos os efeitos de uma jogada:
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Resultado & Novo valor de $m-d$ & Vez\\
+\midrule
+J1 acerta & $(m+1)-(d+1)=m-d$ & Conserva\\
+J2 acerta & $(m+1)-(d-1)=m-d+2$ & Conserva\\
+Qualquer jogador erra & $(m+1)-d=m-d+1$ & Troca\\
+\bottomrule
+\end{tabular}
+\end{center}
+A paridade muda exatamente quando a vez muda. Por indução nas jogadas, a equivalência é preservada. Assim, para cada diferença $d$, há no máximo um jogador da vez possível.
+
+\textbf{2. Limites da diferença.} J1 marca no máximo $m$ pontos, logo $d\le m$. Para J2 chegar a pontuar, J1 precisa ter errado antes; essa jogada não pontua. Portanto, J2 marca no máximo $m-1$ pontos, dando $d\ge -(m-1)=1-m$. Há $m-(1-m)+1=2m$ inteiros nesse intervalo. Junto à paridade, isso prova o limite superior de $2m$ pares.
+
+\textbf{3. Realização de todos os pares.} Admitimos expoentes zero nas palavras abaixo. Nas palavras $\A^a\Er\A^b$, com $a+b=m-1$, J1 marca $a$ pontos, erra e passa a vez a J2, que marca $b$ pontos. Terminamos com J2 na vez e diferença $d=a-b=2a-(m-1)$. Para $a=0,\ldots,m-1$, obtemos $m$ diferenças distintas:
+\[
+1-m,\ 3-m,\ldots,\ m-1.
+\]
+Para $m\ge2$, as palavras $\A^a\Er\A^b\Er$, com $a+b=m-2$, acrescentam um erro de J2, devolvendo a vez a J1 sem modificar o placar. Agora $d=a-b=2a-(m-2)$, e $a=0,\ldots,m-2$ realiza $m-1$ diferenças distintas:
+\[
+2-m,\ 4-m,\ldots,\ m-2.
+\]
+Falta o par $(m,1)$, realizado por $\A^m$. As famílias fornecem $m+(m-1)+1=2m$ pares distintos. Para $m=1$, $\A$ e $\Er$ dão $(1,1)$ e $(0,2)$. Todas essas palavras são compatíveis com a ordem de cartas fixada, pela observação anterior. O limite superior é atingido.
+\end{proof}
+
+Fixada a raiz, $m=N-n(s)$ é recuperado do estoque. O lema mostra que $t$ também pode ser recuperado de $m$ e $d$. Mantemos $t$ no estado para tornar explícitas as regras de pontuação e troca de vez; essa redundância não altera a contagem.
+
+\proxpagina
+% PÁGINA 7 ---------------------------------------------------------------
+\subsection{Contagem exata dos estados}
+O lema não conta estados completos: um mesmo par $(d,t)$ pode acompanhar estoques ou referências diferentes. Para contar os estados, precisamos combinar esse par com as informações das cartas.
+
+As provas valem para qualquer multiconjunto finito de valores e multiplicidades positivas; não utilizam o limite de quatro cópias do baralho original. A referência inicial pode estar ausente do estoque restante.
+
+Por exemplo, para $m=3$ o lema fornece
+\[
+(-2,2),\ (-1,1),\ (0,2),\ (1,1),\ (2,2),\ (3,1).
+\]
+Fixar também um consumo e uma referência produzirá seis estados completos distintos. Já trocar o consumo ou a referência produzirá outros estados, ainda que esses mesmos seis pares reapareçam.
+
+\begin{teorema}[Número de vértices]\label{teo:vertices}
+Se o estoque da raiz possui $k$ valores distintos, de multiplicidades positivas $C_1,\ldots,C_k$, e $N=\sum_{i=1}^{k}C_i\ge1$, então
+\begin{equation}\label{eq:vertices}
+\boxed{\displaystyle |V|=1+(N+1)\sum_{j=1}^{k} C_j\prod_{i\ne j}(C_i+1).}
+\end{equation}
+O número depende apenas das multiplicidades, sem depender dos valores numéricos das cartas ou da referência inicial. Um produto sem fatores vale 1.
+\end{teorema}
+
+\begin{proof}
+Fixemos uma referência atual $v_j$ após ao menos uma jogada. Ela precisa ter sido revelada; por isso, seu consumo satisfaz $a_j\ge1$. As demais coordenadas satisfazem apenas os limites do estoque. Definimos
+\[
+B_j=\bigl\{a\in\mathbb Z^k:1\le a_j\le C_j,\quad
+0\le a_i\le C_i\ (i\ne j)\bigr\}.
+\]
+Essas condições são também suficientes: para qualquer $a\in B_j$, ordenamos as cartas consumidas colocando uma cópia de $v_j$ por último. Assim, existe uma ordem viável de $|a|$ revelações com esse consumo e essa referência.
+
+Fixados $a$ e $j$, temos $c_{v_i}=C_i-a_i$ e $r=v_j$. O Lema~\ref{lem:pares} fornece exatamente $2|a|$ pares $(d,t)$ para essa ordem, todos realizáveis. Como qualquer histórico com esses mesmos consumo e referência obedece ao mesmo lema, há exatamente $2|a|$ estados completos com essas informações.
+
+Não há duplicação ao variar $a$ e $j$: vetores de consumo distintos deixam estoques distintos; índices $j$ distintos dão referências distintas. A raiz, por sua vez, tem consumo zero e não está em nenhum $B_j$.
+
+Pelo princípio multiplicativo, o número de vetores em $B_j$ é
+\[
+|B_j|=C_j\prod_{i\ne j}(C_i+1).
+\]
+A coordenada $a_j$ tem $C_j$ escolhas; cada outra tem $C_i+1$, pois inclui o zero. Essa cardinalidade conta \emph{vetores de consumo}, e não estados. Para obter os estados com referência $v_j$, precisamos calcular
+\[
+S_j=\sum_{a\in B_j}2|a|.
+\]
+\proxpagina
+% PÁGINA 8 ---------------------------------------------------------------
+\destaque{Continuação: avaliação da soma.}
+O peso $2|a|$ varia ao longo da caixa $B_j$. Para somá-lo, emparelhamos consumos por uma simetria da caixa. Definimos $a\mapsto a'$ coordenada a coordenada:
+\begin{equation}\label{eq:espelho}
+a'_j=C_j+1-a_j,\qquad a'_i=C_i-a_i\quad(i\ne j).
+\end{equation}
+Se $1\le a_j\le C_j$, então $1\le a'_j\le C_j$. Para as demais coordenadas, $0\le a_i\le C_i$ implica $0\le a'_i\le C_i$. Portanto, $a'\in B_j$. Além disso,
+\[
+C_j+1-(C_j+1-a_j)=a_j,\qquad C_i-(C_i-a_i)=a_i.
+\]
+Aplicar a transformação duas vezes devolve o vetor original. Logo, ela é uma bijeção de $B_j$ em si mesma, cuja inversa é ela própria. Somando as coordenadas de~\eqref{eq:espelho}, obtemos
+\begin{equation}\label{eq:somasespelho}
+|a'|=\sum_{i=1}^{k}C_i+1-\sum_{i=1}^{k}a_i=N+1-|a|.
+\end{equation}
+Como a bijeção percorre os mesmos vetores, apenas em outra ordem,
+\begin{align*}
+S_j&=\sum_{a\in B_j}2|a'|
+=\sum_{a\in B_j}2(N+1-|a|)\\
+&=2(N+1)|B_j|-S_j.
+\end{align*}
+Assim, $2S_j=2(N+1)|B_j|$, ou seja,
+\[
+S_j=(N+1)|B_j|.
+\]
+Somamos os grupos de referências, que são disjuntos, e acrescentamos a raiz:
+\[
+|V|=1+\sum_{j=1}^{k}S_j
+=1+(N+1)\sum_{j=1}^{k}C_j\prod_{i\ne j}(C_i+1).
+\]
+Isso conclui a demonstração.
+\end{proof}
+
+\destaque{Exemplo do emparelhamento.}
+Para $C=(1,2)$ e referência $v_2$, a caixa $B_2$ e seu espelhamento são:
+\begin{center}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+$a$ & $|a|$ & $a'$ & $|a'|$ & $|a|+|a'|$\\
+\midrule
+$(0,1)$ & 1 & $(1,2)$ & 3 & 4\\
+$(0,2)$ & 2 & $(1,1)$ & 2 & 4\\
+$(1,1)$ & 2 & $(0,2)$ & 2 & 4\\
+$(1,2)$ & 3 & $(0,1)$ & 1 & 4\\
+\bottomrule
+\end{tabular}
+\end{center}
+Aqui $N=3$, $|B_2|=4$ e $S_2=2(1+2+2+3)=16=(N+1)|B_2|$. Não se afirma que $|a|=|a'|$ para cada vetor. A relação individual é $|a|+|a'|=N+1$; a bijeção preserva a \emph{soma sobre toda a caixa}. O argumento continua válido se algum vetor for seu próprio espelho, pois não exige dividir a caixa em pares distintos.
+
+A referência \emph{atual} é uma das informações contadas, mas o valor da referência \emph{inicial} não aparece na fórmula. Após uma jogada, a referência é sempre um valor consumido; para cada ordem, todos os padrões de acerto e erro continuam realizáveis. Por isso, alterar a referência inicial muda quais previsões acertam, mas não a quantidade de estados alcançáveis.
+
+\proxpagina
+% PÁGINA 9 ---------------------------------------------------------------
+\subsection{Contagem por camada e estados terminais}
+\begin{corolario}[Camadas, terminais e cartas iguais]\label{cor:camadas}
+A camada zero possui $|V_0|=1$. Para $1\le m\le N$,
+\begin{equation}\label{eq:camadas}
+\boxed{\displaystyle |V_m|=2m\!\sum_{\substack{0\le a_i\le C_i\ (1\le i\le k)\\a_1+\cdots+a_k=m}}\!|\{j:a_j>0\}|.}
+\end{equation}
+Há exatamente $2Nk$ estados terminais. Se todas as $N\ge1$ cartas restantes têm o mesmo valor, então $|V|=1+N(N+1)$.
+\end{corolario}
+
+\begin{proof}
+Fixemos $m$ e um consumo $a$ de soma $m$. A referência atual precisa ser um valor consumido. Reciprocamente, qualquer valor com $a_j>0$ pode ser colocado na última posição de uma ordem dessas cartas. Assim, o conjunto $\{j:a_j>0\}$ tem exatamente os índices das referências possíveis para esse consumo.
+
+Cada escolha de referência admite $2m$ pares $(d,t)$ pelo Lema~\ref{lem:pares}. Para esse $a$, há, portanto, $2m|\{j:a_j>0\}|$ estados. Consumos diferentes deixam estoques diferentes, logo os conjuntos contados são disjuntos. Somar todos os consumos viáveis fornece~\eqref{eq:camadas}. O fator $2m$ pode sair da soma porque $m$ é fixo.
+
+No final, $m=N$ e o único consumo é $a=(C_1,\ldots,C_k)$. Todos os $k$ índices têm consumo positivo, de modo que $|V_N|=2Nk$. Se $k=1$, para cada $m\ge1$ existe apenas o consumo $a_1=m$ e uma referência possível. Logo, $|V_m|=2m$ e
+\[
+|V|=1+\sum_{m=1}^{N}2m=1+2\frac{N(N+1)}2=1+N(N+1).
+\]
+\end{proof}
+
+\destaque{Como ler o somatório.}
+Ele percorre vetores inteiros de consumo, e não ordens de revelação. Para $[6,7,7]$, temos $C=(1,2)$. Na camada $m=2$, só existem os consumos abaixo:
+\begin{center}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+$a$ & Cartas restantes & Referências & $|\{j:a_j>0\}|$ & Estados\\
+\midrule
+$(0,2)$ & $[6]$ & 7 & 1 & $4\cdot1=4$\\
+$(1,1)$ & $[7]$ & 6 ou 7 & 2 & $4\cdot2=8$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Portanto, $|V_2|=2\cdot2(1+2)=12$. A referência 7 é contada nas duas linhas porque acompanha estoques distintos. Ela pode estar esgotada no estoque: em $(0,2)$, a última carta revelada é 7, mas não resta outro 7 oculto.
+
+Para o final dessa mesma instância, o consumo é $(1,2)$, as referências finais são 6 ou 7 e cada uma admite seis pares $(d,t)$. Assim, $|V_3|=2\cdot3\cdot2=12$. Referência e vez continuam distinguindo terminais, conforme nossa definição de estado. Se $N=0$, há somente a raiz, já terminal; esse caso não utiliza a expressão $2Nk$.
+
+\proxpagina
+% PÁGINA 10 --------------------------------------------------------------
+\subsection{Folhas e camadas da árvore de históricos}
+\begin{proposicao}[Folhas da árvore de históricos]\label{prop:folhas}
+Com multiplicidades $C_1,\ldots,C_k$ e $N=\sum_i C_i\ge1$, a árvore de históricos possui
+\begin{equation}\label{eq:folhas}
+\boxed{\displaystyle L=3^N\frac{N!}{C_1!\cdots C_k!}}
+\end{equation}
+folhas. Cada folha corresponde a um histórico completo.
+\end{proposicao}
+
+\begin{proof}
+Um histórico completo é determinado por duas informações: a ordem dos $N$ valores revelados e a sequência das $N$ previsões. Primeiro, se todas as cartas fossem distinguíveis, haveria $N!$ ordens. Permutar entre si as $C_i$ cópias do valor $v_i$ não altera a sequência de valores; cada sequência foi contada $\prod_i C_i!$ vezes. Portanto, existem $N!/\prod_i C_i!$ ordens distintas de valores.
+
+Para cada ordem, há três escolhas de previsão em cada uma das $N$ posições. Como nenhuma previsão é proibida, são $3^N$ sequências. A regra da vez não elimina escolhas: ela apenas determina qual jogador faz cada previsão a partir dos resultados anteriores. O par formado por ordem e previsões determina um histórico único, e todo histórico completo fornece esse par. Trata-se de uma bijeção, de modo que multiplicamos as duas contagens.
+
+Pela Proposição~\ref{prop:representacoes}, um histórico só deixa de admitir continuação depois de consumir todas as cartas. Logo, esses históricos são exatamente as folhas.
+\end{proof}
+
+\destaque{Por que o fator é $3^N$ e não $2^N$?}
+Na árvore, previsões diferentes continuam distinguindo históricos. Se a próxima carta é 7 e a referência é 6, \emph{menor} e \emph{igual} são duas escolhas diferentes, embora ambas errem e levem ao mesmo estado. As letras $\A/\Er$ resumem os resultados para estudar o grafo; não substituem o registro das três previsões nos históricos.
+
+\destaque{Camadas intermediárias.}
+Escrevendo $H_m$ para o número de históricos de comprimento $m$, a mesma bijeção, agora separada por consumo, dá
+\begin{equation}\label{eq:historicoscamada}
+H_m=3^m\!\sum_{\substack{0\le a_i\le C_i\ (1\le i\le k)\\a_1+\cdots+a_k=m}}
+\frac{m!}{a_1!\cdots a_k!},\qquad 0\le m\le N.
+\end{equation}
+Adotamos $0!=1$, de modo que $H_0=1$. Para cada consumo, o coeficiente multinomial conta suas ordens possíveis; o fator $3^m$ conta as previsões. Em $m=N$, existe apenas $a=C$ e recuperamos~\eqref{eq:folhas}. Por isso, não basta substituir $N$ por $m$ na fórmula das folhas mantendo os $C_i!$ no denominador.
+
+Com $C=(1,2)$, em $m=2$ há as ordens $6,7$; $7,6$; $7,7$. Logo, $H_2=3^2(2+1)=27$. Ao final, são $L=3^3\,3!/(1!2!)=81$ folhas, mas apenas 12 estados terminais. As folhas contam maneiras de a partida acontecer; os terminais contam situações finais distintas.
+
+\proxpagina
+% PÁGINA 11 --------------------------------------------------------------
+\subsection{Bipartição e classificação dos ciclos}
+\begin{teorema}[Bipartição e classificação dos ciclos]\label{teo:ciclos}
+O grafo associado ao grafo de estados é bipartido. Ele é uma árvore se, e somente se, $N\le2$. Para $N\ge3$, o menor comprimento de um ciclo simples é 4, qualquer que seja a composição das cartas.
+\end{teorema}
+
+\begin{proof}
+\textbf{Bipartição.} Separemos $V$ em $\bigcup_{m\text{ par}}V_m$ e $\bigcup_{m\text{ ímpar}}V_m$. Toda aresta liga camadas consecutivas, portanto cruza as duas partes. Um ciclo alterna as partes e só volta à inicial após um número par de arestas. Não há, assim, ciclos ímpares.
+
+\textbf{Até duas cartas.} Para $N=0$, há somente a raiz. Para $N=1$, cada sucessor tem a raiz como único predecessor. Para $N=2$, basta examinar também a camada 2. O estoque final determina as duas cartas consumidas, e a referência final determina qual foi revelada por último. Logo, a ordem de seus valores é recuperada, inclusive quando são iguais. As quatro palavras de resultados têm pares distintos:
+\[
+\A\A:(2,1),\quad \A\Er:(1,2),\quad
+\Er\A:(-1,2),\quad \Er\Er:(0,1).
+\]
+Assim, o estado final também recupera a palavra de resultados. A primeira carta e o primeiro resultado determinam um único estado na camada 1. As duas previsões erradas já foram reunidas e não criam arestas paralelas. Cada estado não inicial tem, portanto, um único predecessor. O argumento da Proposição~\ref{prop:representacoes}, usando conexidade e pai único, mostra que o associado é uma árvore.
+
+\textbf{Três ou mais cartas.} Fixemos quaisquer três revelações viáveis $x,y,z$, que podem repetir valores. Após $x,y$, as palavras $\Er\Er$ e $\A\Er$ dão estados distintos $u,v$, com mesmo estoque e referência $y$, mas pares $(0,1)$ e $(1,2)$. Revelando $z$, ambos podem chegar a $a$ e $b$, com mesmo novo estoque e referência $z$:
+\[
+u\xrightarrow{\A}a,\quad u\xrightarrow{\Er}b,\quad
+v\xrightarrow{\Er}a,\quad v\xrightarrow{\A}b,
+\qquad a:(1,1),\quad b:(0,2).
+\]
+Os vértices de uma mesma camada diferem em $(d,t)$; os de camadas distintas diferem no total de cartas. Logo, são quatro vértices distintos e, apagadas as orientações, $u,a,v,b,u$ é um ciclo simples de comprimento 4. O grafo é simples e bipartido: não há ciclos simples de comprimentos 1, 2 ou 3. Portanto, esse ciclo é mínimo, e o associado não é uma árvore.
+\end{proof}
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,box/.style={draw,rounded corners=2pt,fill=blue!3,minimum width=3.2cm,minimum height=0.85cm,align=center,font=\small}]
+\node[box] (u) at (0,1.15) {$u:\ \Er\Er$\\$(d,t)=(0,1)$};
+\node[box] (v) at (0,-0.15) {$v:\ \A\Er$\\$(d,t)=(1,2)$};
+\node[box] (a) at (6,1.15) {$a:\ \Er\Er\A,\ \A\Er\Er$\\$(d,t)=(1,1)$};
+\node[box] (b) at (6,-0.15) {$b:\ \Er\Er\Er,\ \A\Er\A$\\$(d,t)=(0,2)$};
+\draw[->] (u)--node[above] {$\A$}(a);
+\draw[->] (u)--node[pos=.32,fill=white,inner sep=1pt] {$\Er$}(b);
+\draw[->] (v)--node[pos=.32,fill=white,inner sep=1pt] {$\Er$}(a);
+\draw[->] (v)--node[below] {$\A$}(b);
+\end{tikzpicture}
+\captionof{figure}{Camadas 2 e 3. As palavras indicam resultados, com as cartas fixadas. O ciclo existe no associado; nenhuma seta volta à camada anterior.}
+\end{center}
+
+\proxpagina
+% PÁGINA 12 --------------------------------------------------------------
+\subsection{Entradas múltiplas e árvores geradoras}
+\begin{proposicao}[Entradas múltiplas e arestas excedentes]\label{prop:excedentes}
+Se $o$ é a raiz do grafo de estados, então
+\begin{equation}\label{eq:beta}
+\boxed{\displaystyle \beta=|E|-|V|+1
+=\sum_{v\ne o}\bigl(\grauin(v)-1\bigr).}
+\end{equation}
+É possível obter uma árvore geradora do grafo associado removendo exatamente $\beta$ arestas. Qualquer remoção que produza uma árvore com todos os vértices precisa retirar essa quantidade de arestas.
+\end{proposicao}
+
+\begin{proof}
+\textbf{Identidade de contagem.} A raiz não recebe arestas, pois está na camada zero. Todo outro vértice recebe pelo menos uma: ele é alcançado por algum histórico não vazio. Ao somar graus de entrada, cada aresta é contada uma única vez, em seu destino. Portanto,
+\[
+\sum_{v\ne o}\grauin(v)=|E|,
+\qquad
+\sum_{v\ne o}(\grauin(v)-1)=|E|-(|V|-1).
+\]
+
+\textbf{Construção da árvore geradora.} Para cada $v\ne o$, escolhemos exatamente uma das arestas que chegam a $v$. São $|V|-1$ arestas distintas, pois têm destinos distintos. Sigamos essas arestas escolhidas para trás a partir de qualquer vértice. A camada diminui em um a cada passo, e todo vértice de camada positiva tem uma entrada escolhida. O processo só pode terminar em $o$. Assim, apagadas as orientações, o subgrafo escolhido é conexo e contém todos os vértices.
+
+Ele não tem ciclo simples: um vértice de camada máxima de um suposto ciclo teria duas arestas escolhidas entrando nele, contrariando a seleção de uma única entrada. Logo, o subgrafo é uma árvore geradora. Foram retiradas $|E|-(|V|-1)=\beta$ arestas.
+
+\textbf{Necessidade da quantidade.} Toda árvore finita com $|V|$ vértices tem $|V|-1$ arestas: enraizando-a, cada vértice diferente da raiz corresponde à única aresta que o liga ao pai. Logo, qualquer árvore geradora do nosso grafo mantém exatamente $|V|-1$ arestas e exige a mesma quantidade $\beta$ de remoções.
+\end{proof}
+
+\destaque{Interpretação das duas expressões.}
+Na fórmula $|E|-|V|+1$, comparamos o número de ligações com o necessário para uma árvore. Na soma dos graus de entrada, reservamos uma entrada para cada estado não inicial e contamos as adicionais. Assim, as entradas múltiplas explicam precisamente as arestas excedentes. Nas notas complementares, as arestas fora de uma árvore geradora são chamadas de \emph{elos}~\cite[p.~130]{rangel}.
+
+Se recolocarmos um desses elos na árvore escolhida, seus extremos já estão ligados por um único caminho simples. A nova aresta fecha um ciclo, chamado fundamental em relação a essa árvore. Desse modo, $\beta$ conta os elos e os ciclos fundamentais dessa construção; não conta todos os ciclos simples, pois outras combinações de arestas podem gerar outros ciclos.
+
+A escolha precisa preservar uma entrada por vértice: retirar $\beta$ arestas arbitrárias pode desconectar o grafo. Além disso, a árvore geradora serve à análise das conexões. Ela deixa de representar algumas jogadas possíveis e, por isso, não substitui o grafo completo para descrever todas as partidas ou resolver decisões do jogo.
+
+\proxpagina
+% PÁGINA 13 --------------------------------------------------------------
+\section{Exemplos e aplicação das fórmulas}
+\subsection{Um final com dois valores distintos}
+Considere referência 6, estoque $[6,7,7]$, $d=0$ e $t=1$. Temos $C=(1,2)$, $N=3$ e $k=2$. Pelo Teorema~\ref{teo:vertices},
+\[
+|V|=1+(3+1)\bigl[1(2+1)+2(1+1)\bigr]=1+4\cdot7=29.
+\]
+O Corolário~\ref{cor:camadas} dá 12 terminais e a Proposição~\ref{prop:folhas} dá 81 folhas. As camadas permitem acompanhar a diferença entre essas contagens:
+\begin{center}
+\begin{tabular}{@{}crrr@{}}
+\toprule
+Jogadas $m$ & Históricos $H_m$ & Estados $|V_m|$ & Arestas de saída\\
+\midrule
+0 & 1 & 1 & 4\\
+1 & 6 & 4 & 12\\
+2 & 27 & 12 & 24\\
+3 & 81 & 12 & 0\\
+\midrule
+Total & 115 & 29 & 40\\
+\bottomrule
+\end{tabular}
+\captionof{table}{Árvore e grafo da mesma raiz. Uma folha é um histórico completo.}
+\end{center}
+
+Na primeira jogada, os valores 6 e 7 podem ser revelados. Cada um admite acerto e erro: são quatro estados. Na camada 2, os consumos $(0,2)$ e $(1,1)$ admitem, respectivamente, uma e duas referências; cada escolha admite quatro pares $(d,t)$, produzindo $4(1+2)=12$ estados. Na camada 3, o consumo é $(1,2)$ e há duas referências, cada uma com seis pares: são outros 12 estados.
+
+Para contar arestas de saída de uma camada, somamos $2q$ sobre seus estados; $q$ pode variar dentro da camada. A raiz tem $q=2$, logo quatro arestas. Na camada 1, revelar 6 deixa $[7,7]$: seus dois estados têm $q=1$ e contribuem com quatro arestas. Revelar 7 deixa $[6,7]$: seus dois estados têm $q=2$ e contribuem com oito. Na camada 2, cada um dos 12 estados tem uma única carta restante e duas saídas. Assim,
+\[
+|E|=4+(4+8)+12\cdot2=40,\qquad \beta=40-29+1=12.
+\]
+As 24 arestas da camada 2 podem chegar a 12 terminais porque origens diferentes podem ter um sucessor comum. Essas arestas continuam distintas, já que uma aresta é determinada por origem e destino.
+
+A árvore contém $1+6+27+81=115$ vértices e, portanto, 114 arestas. O grafo de estados possui 29 vértices e 40 arestas; uma árvore geradora do associado mantém 28 delas. Temos, assim, três objetos distintos: a árvore de históricos, o grafo de estados e uma árvore geradora desse grafo.
+
+\subsection{Três cartas iguais}
+Se o estoque passa a ser $[6,6,6]$, ainda com referência 6, temos $k=1$ e $N=3$. Agora $|V|=1+3\cdot4=13$, com camadas de tamanhos $1,2,4,6$. Os sete estados não terminais têm duas saídas cada, logo $|E|=14$ e $\beta=2$. Na árvore, cada histórico não terminal tem três filhos: são $1+3+9+27=40$ vértices e 27 folhas. Mesmo com todas as cartas iguais, previsões que certamente erram permanecem permitidas e produzem diferentes pares de placar e vez.
+
+\proxpagina
+% PÁGINA 14 --------------------------------------------------------------
+\begin{center}
+\begin{tikzpicture}[>=Stealth,x=1cm,y=1cm,
+estado/.style={draw,rounded corners=2pt,minimum width=1.15cm,minimum height=.52cm,fill=blue!3,font=\small},
+acerto/.style={->,blue!65!black},erro/.style={->,gray!75!black,dashed}]
+\node[estado] (o) at (0,3.9) {$(0,1)$};
+\node[estado] (a) at (-2.2,2.6) {$(1,1)$};
+\node[estado] (e) at (2.2,2.6) {$(0,2)$};
+\node[estado] (aa) at (-4,1.3) {$(2,1)$};
+\node[estado] (ae) at (-1.4,1.3) {$(1,2)$};
+\node[estado] (ee) at (1.4,1.3) {$(0,1)$};
+\node[estado] (ea) at (4,1.3) {$(-1,2)$};
+\node[estado] (aaa) at (-5,0) {$(3,1)$};
+\node[estado] (aae) at (-3,0) {$(2,2)$};
+\node[estado] (aee) at (-1,0) {$(1,1)$};
+\node[estado] (aea) at (1,0) {$(0,2)$};
+\node[estado] (eae) at (3,0) {$(-1,1)$};
+\node[estado] (eaa) at (5,0) {$(-2,2)$};
+\draw[acerto] (o)--node[above left,font=\scriptsize]{$\A$}(a);
+\draw[erro] (o)--node[above right,font=\scriptsize]{$\Er$}(e);
+\draw[acerto] (a)--(aa); \draw[erro] (a)--(ae);
+\draw[acerto] (e)--(ea); \draw[erro] (e)--(ee);
+\draw[acerto] (aa)--(aaa); \draw[erro] (aa)--(aae);
+\draw[acerto] (ae)--(aea); \draw[erro] (ae)--(aee);
+\draw[acerto] (ee)--(aee); \draw[erro] (ee)--(aea);
+\draw[acerto] (ea)--(eaa); \draw[erro] (ea)--(eae);
+\foreach \h/\m in {3.9/0,2.6/1,1.3/2,0/3}{\node[anchor=west,font=\small] at (6,\h){$m=\m$};}
+\end{tikzpicture}
+\captionof{figure}{Grafo completo de $[6,6,6]$ com referência 6. Cada caixa mostra $(d,t)$; a camada determina o estoque e $r=6$ em todos os estados. Linhas contínuas azuis indicam acertos; tracejadas, erros. Há 13 vértices e 14 arestas.}
+\end{center}
+
+
+\subsection{Aplicação ao baralho original de 36 cartas}
+A referência inicial está fixada e já foi retirada. Restam $N=35$ cartas: três cópias do valor revelado e quatro de cada um dos outros oito valores. Podemos reordenar as categorias para escrever $C=(3,4,4,4,4,4,4,4,4)$. No Teorema~\ref{teo:vertices},
+\begin{align*}
+|V|&=1+(35+1)\bigl[3\cdot5^8+8(4\cdot4\cdot5^7)\bigr]\\
+&=1+36\cdot11.171.875=402.187.501.
+\end{align*}
+O fator 36 é $N+1$, e não o número de cartas restantes. A primeira camada tem $2\cdot9=18$ estados e 27 históricos. No final, há
+\[
+|V_{35}|=2\cdot35\cdot9=630,
+\qquad
+L=3^{35}\frac{35!}{3!(4!)^8}\approx7{,}83\times10^{44}.
+\]
+Esses valores vêm das fórmulas, sem enumerar o grafo de centenas de milhões de estados. As folhas contam históricos completos desde a referência fixada; não são resultados finais distintos. Também não são igualmente prováveis por terem sido contadas: as probabilidades dependem do estoque e das escolhas dos jogadores.
+
+\section{Considerações finais}
+A passagem da árvore ao grafo reúne passados distintos quando deixam a mesma situação relevante. O invariante do Lema~\ref{lem:pares} controla placar e vez; sua combinação com consumos e referências produz a contagem exata. A diminuição das cartas garante aciclicidade dirigida, enquanto os reencontros entre caminhos produzem ciclos no associado a partir de três cartas. A quantidade $\beta$ relaciona esses reencontros às entradas adicionais e à construção de uma árvore geradora.
+
+Os exemplos mostram como os resultados gerais determinam quantidades de estados, históricos e arestas em composições específicas. A aplicação ao baralho original evidencia o alcance da contagem por fórmula: obtemos o número de vértices sem precisar construir o grafo inteiro. Para composições grandes, mesmo a representação reduzida por estados pode ser impraticável de enumerar.
+
+A visualização dos grafos em HTML complementa a análise teórica e auxilia na compreensão das relações entre os vértices e as arestas. Essa representação se apoia nas definições e nos resultados demonstrados neste relatório.
+
+Comparar estratégias exige acrescentar um objetivo e as probabilidades das revelações. As saídas $\A/\Er$ não são escolhas livres do jogador, que precisa prever antes de ver a carta. Essa extensão pode usar o mesmo estado, mas não é necessária para os resultados estruturais demonstrados neste trabalho.
+
+\begin{thebibliography}{9}
+\small
+\bibitem{nina} \emph{Notas MD Nina}. Anotações manuscritas de uma aluna da disciplina de Matemática Discreta, ministrada por Maria Soledad Aronna, no ano anterior ao deste trabalho. 57 p. Material de estudo fornecido ao grupo; arquivo local. Autoria identificada apenas pelo nome do arquivo.
+\bibitem{rangel} RANGEL, Socorro; OLIVEIRA, Valeriano A. de; ARAUJO, Silvio A. \emph{Elementos de Teoria dos Grafos: Notas de Aula}. Departamento de Matemática Aplicada, IBILCE/Unesp, 24 set. 2018. Disponível em: \url{https://www.ibilce.unesp.br/Home/Departamentos/MatematicaAplicada/docentes/socorro/grafos---notas-de-aula_set2018.pdf}. Acesso em: 13 nov. 2026.
+\end{thebibliography}
+\end{document}
