@@ -449,8 +449,8 @@ function renderContagens() {
     "</p>";
   const linhas = [
     ["|V|", f.V],
-    ["|E|", f.E],
-    ["β", f.beta],
+    // ["|E|", f.E],
+    // ["β", f.beta],
     ["terminais", f.term],
     ["folhas L", f.folhas],
   ];
@@ -462,8 +462,8 @@ function renderContagens() {
     for (const k of g.camadas[g.N]) folhas += g.estados.get(k).hist;
     medidos = [
       V,
-      E,
-      BigInt(g.arestas.length - app.geradora.size),
+      // E,
+      // BigInt(g.arestas.length - app.geradora.size),
       BigInt(g.camadas[g.N].length),
       folhas,
     ];
@@ -885,6 +885,13 @@ $("cartas").addEventListener("keydown", (e) => {
   if (e.key === "Enter") construir();
 });
 $("ref").addEventListener("change", construir);
+// Botões de exemplo: preenchem as cartas restantes e reconstroem.
+$("exemplos").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-ex]");
+  if (!b) return;
+  $("cartas").value = b.dataset.ex;
+  construir();
+});
 
 // Clique em um estado do grafo: seleciona (ou desmarca) o estado.
 $("grafo").addEventListener("click", (e) => {

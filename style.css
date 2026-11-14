@@ -67,6 +67,15 @@ h2 {
   align-items: end;
   padding: 10px 22px;
 }
+.exemplos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.exemplos span {
+  color: var(--suave);
+}
 label {
   display: flex;
   flex-direction: column;
