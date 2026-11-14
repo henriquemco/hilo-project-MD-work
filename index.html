@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hi-Lo: árvore de históricos e grafo de estados</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Hi-Lo competitivo: árvore de históricos e grafo de estados</h1>
+      <p>
+        Escolha um final reduzido. A página enumera todos os estados
+        alcançáveis, desenha as duas representações e confere as contagens com
+        as fórmulas do trabalho.
+      </p>
+    </header>
+
+    <div class="controles">
+      <label
+        >Cartas restantes
+        <input
+          type="text"
+          id="cartas"
+          value="6,7,7"
+          aria-label="Cartas restantes, separadas por vírgula"
+        />
+      </label>
+      <label
+        >Referência inicial
+        <select id="ref"></select>
+      </label>
+      <button class="primario" id="construir">Construir</button>
+    </div>
+    <div class="erro" id="erro" role="alert"></div>
+
+    <div class="grade">
+      <aside>
+        <div class="painel">
+          <h2>Contagens</h2>
+          <div id="contagens"></div>
+        </div>
+        <div class="painel">
+          <h2>Partida</h2>
+          <div id="partida"></div>
+        </div>
+        <div class="painel">
+          <h2>Estado selecionado</h2>
+          <div id="estado"></div>
+        </div>
+      </aside>
+      <main>
+        <div class="painel">
+          <h2>Grafo de estados</h2>
+          <div class="legenda">
+            <span
+              ><svg width="30" height="8">
+                <line x1="0" y1="4" x2="30" y2="4" class="ar" />
+              </svg>
+              acerto (A)</span
+            >
+            <span
+              ><svg width="30" height="8">
+                <line x1="0" y1="4" x2="30" y2="4" class="ar E" />
+              </svg>
+              erro (E), duas previsões</span
+            >
+            <span
+              ><svg width="30" height="8">
+                <line x1="0" y1="4" x2="30" y2="4" class="ar cam" />
+              </svg>
+              partida atual</span
+            >
+            <span
+              ><svg width="30" height="8">
+                <line x1="0" y1="4" x2="30" y2="4" class="ar exc" />
+              </svg>
+              aresta excedente</span
+            >
+            <span
+              ><svg width="30" height="8">
+                <line x1="0" y1="4" x2="30" y2="4" class="ar cic" />
+              </svg>
+              menor ciclo</span
+            >
+            <span
+              >Rótulo de cada estado: d, t. Todas as arestas apontam para
+              baixo.</span
+            >
+          </div>
+          <div class="rolagem" id="grafo"></div>
+        </div>
+        <div class="painel">
+          <h2>Árvore de históricos</h2>
+          <div class="rolagem" id="arvore"></div>
+        </div>
+      </main>
+    </div>
+
+    <script src="./main.js"></script>
+  </body>
+</html>

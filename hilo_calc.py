@@ -1,23 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-hilo_calc.py — Calculadora combinatória para o grafo de estados do Hi-Lo competitivo.
-
-O módulo tem duas partes independentes, que só se encontram no modo de verificação:
-
-  PARTE 1 — CONTAGEM POR FÓRMULA
-      Recebe apenas as multiplicidades (C_1, ..., C_k) das cartas restantes e
-      devolve |V|, |V_m|, |E|, β, terminais e folhas SEM construir o grafo.
-      Funciona para o baralho completo (35 cartas após a referência inicial).
-
-  PARTE 2 — ENUMERAÇÃO (FORÇA BRUTA)
-      Constrói o grafo de estados camada a camada, usando as três previsões
-      explícitas (menor/igual/maior) e a Tabela 1 do trabalho. Só é viável para
-      finais pequenos (N até cerca de 8 ou 9).
-
-  PARTE 3 — VERIFICAÇÃO
-      Compara as duas rotas e testa cada enunciado da Seção 3 do trabalho.
-
 Notação (a mesma do texto):
     N      número de cartas restantes na raiz
     k      número de valores distintos entre elas
@@ -25,9 +6,6 @@ Notação (a mesma do texto):
     m      camada = número de jogadas já realizadas
     a      vetor de consumo: a_i cartas do valor i já foram reveladas, |a| = m
     (c, r, d, t)  estado: cartas restantes, referência, diferença de pontos, vez
-
-Toda a aritmética usa o tipo `int` do Python, que tem precisão arbitrária;
-nenhum valor passa por ponto flutuante (exceto a aproximação impressa de L).
 
 Uso rápido:
     python3 hilo_calc.py --cartas 6,7,7 --ref 6 --verificar
@@ -234,7 +212,6 @@ def historicos_por_camada(C: list[int]) -> list[int]:
 # ============================================================================
 # PARTE 2 — ENUMERAÇÃO DO GRAFO DE ESTADOS
 # ============================================================================
-#
 # Um estado é a tupla imutável (c, r, d, t) da Definição 2.5:
 #     c  tupla de inteiros, alinhada com `valores`: c[i] cartas de valor valores[i]
 #     r  referência atual
@@ -461,7 +438,8 @@ def relatorio(C: list[int], titulo: str) -> None:
 
     arv, vert, ares = historicos_por_camada(C), vertices_por_camada(C), arestas_por_camada(C)
     w = max(20, len(fmt(sum(arv))) + 1)  # largura da coluna da árvore (números enormes)
-    print(f"\n  {'m':>3} {'vértices da árvore':>{w}} {'vértices do grafo':>18} {'arestas que saem':>17}")
+    print(f"\n  {'m':>3} {'vértices da árvore':>{w}} {
+          'vértices do grafo':>18} {'arestas que saem':>17}")
     for m in range(N + 1):
         print(f"  {m:>3} {fmt(arv[m]):>{w}} {fmt(vert[m]):>18} {fmt(ares[m]):>17}")
     print(f"  {'tot':>3} {fmt(sum(arv)):>{w}} {fmt(sum(vert)):>18} {fmt(sum(ares)):>17}")
@@ -525,7 +503,8 @@ def main(argv=None) -> int:
         tudo_ok = True
         for nome, ok, detalhe in verificar(valores, mult, ref):
             tudo_ok &= ok
-            print(f"  [{'ok' if ok else 'FALHOU'}] {nome}" + (f"  — {detalhe}" if detalhe and not ok else ""))
+            print(f"  [{'ok' if ok else 'FALHOU'}] {nome}" +
+                  (f"  — {detalhe}" if detalhe and not ok else ""))
         return 0 if tudo_ok else 1
     return 0
 

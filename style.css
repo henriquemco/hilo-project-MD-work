@@ -1,0 +1,307 @@
+:root {
+  --fundo: #f6f5f1;
+  --painel: #ffffff;
+  --tinta: #1d2330;
+  --suave: #636b7a;
+  --linha: #b9bec9;
+  --borda: #dcdfe6;
+  --bloco: #eef0f4;
+  --acento: #1f5fd0; /* partida em andamento (caminho) */
+  --fibra: #0b8a6f; /* estado selecionado e seus históricos */
+  --excede: #c8322b; /* arestas excedentes */
+  --ciclo: #d9820a; /* menor ciclo */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fundo: #14171d;
+    --painel: #1c2028;
+    --tinta: #e6e8ee;
+    --suave: #9aa2b1;
+    --linha: #596173;
+    --borda: #2e3440;
+    --bloco: #232833;
+    --acento: #6ea2ff;
+    --fibra: #3fcfab;
+    --excede: #ff7068;
+    --ciclo: #ffb347;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--tinta);
+  font:
+    14px/1.45 system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}
+header {
+  padding: 18px 22px 6px;
+}
+h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 650;
+}
+header p {
+  margin: 4px 0 0;
+  color: var(--suave);
+  max-width: 80ch;
+}
+h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--suave);
+}
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: end;
+  padding: 10px 22px;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--suave);
+}
+label.linha {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--tinta);
+}
+input[type="text"],
+select {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: var(--painel);
+  color: var(--tinta);
+}
+input[type="text"] {
+  width: 170px;
+}
+button {
+  font: inherit;
+  padding: 6px 11px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: var(--painel);
+  color: var(--tinta);
+  cursor: pointer;
+}
+button:hover {
+  border-color: var(--acento);
+}
+button.primario {
+  background: var(--acento);
+  border-color: var(--acento);
+  color: #fff;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.erro {
+  color: var(--excede);
+  padding: 0 22px;
+  min-height: 1.2em;
+}
+.grade {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 14px;
+  padding: 6px 22px 28px;
+}
+@media (max-width: 900px) {
+  .grade {
+    grid-template-columns: 1fr;
+  }
+}
+.painel {
+  background: var(--painel);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+th,
+td {
+  text-align: right;
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--borda);
+}
+th:first-child,
+td:first-child {
+  text-align: left;
+}
+th {
+  font-weight: 600;
+  color: var(--suave);
+  font-size: 12px;
+}
+.ok {
+  color: var(--fibra);
+}
+.ruim {
+  color: var(--excede);
+  font-weight: 700;
+}
+.rolagem {
+  overflow: auto;
+  max-height: 78vh;
+}
+.nota {
+  color: var(--suave);
+  font-size: 12.5px;
+  margin: 6px 0 0;
+}
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  color: var(--suave);
+  font-size: 12.5px;
+  margin-bottom: 8px;
+}
+.legenda svg {
+  vertical-align: middle;
+}
+.jogada {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 5px 0;
+  flex-wrap: wrap;
+}
+.jogada span {
+  min-width: 76px;
+}
+ol.hist {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+.situacao {
+  margin: 0 0 8px;
+}
+
+/* --- desenho do grafo ------------------------------------------------- */
+svg text {
+  font:
+    11px system-ui,
+    sans-serif;
+  fill: var(--tinta);
+}
+.bloco {
+  fill: var(--bloco);
+  stroke: none;
+}
+.rot-bloco {
+  fill: var(--suave);
+  font-size: 10.5px;
+  paint-order: stroke;
+  stroke: var(--bloco);
+  stroke-width: 5px;
+}
+.rot-camada {
+  fill: var(--suave);
+  font-weight: 600;
+}
+.ar {
+  stroke: var(--linha);
+  stroke-width: 1.1;
+  fill: none;
+}
+.ar.E {
+  stroke-dasharray: 4 3;
+}
+.ar.exc {
+  stroke: var(--excede);
+  stroke-width: 1.7;
+}
+.ar.viz {
+  stroke: var(--fibra);
+  stroke-width: 2;
+}
+.ar.cic {
+  stroke: var(--ciclo);
+  stroke-width: 3.2;
+}
+.ar.cam {
+  stroke: var(--acento);
+  stroke-width: 3.2;
+}
+.est {
+  cursor: pointer;
+}
+.est rect {
+  fill: var(--painel);
+  stroke: var(--linha);
+  stroke-width: 1.1;
+}
+.est.cic rect {
+  stroke: var(--ciclo);
+  stroke-width: 2.6;
+}
+.est.cam rect {
+  stroke: var(--acento);
+  stroke-width: 2.6;
+}
+.est.sel rect {
+  fill: var(--fibra);
+  stroke: var(--fibra);
+}
+.est.sel text {
+  fill: #fff;
+  font-weight: 700;
+}
+.est.atual rect {
+  fill: var(--acento);
+  stroke: var(--acento);
+}
+.est.atual text {
+  fill: #fff;
+  font-weight: 700;
+}
+/* --- desenho da árvore ------------------------------------------------ */
+.ramo {
+  stroke: var(--linha);
+  stroke-width: 0.8;
+}
+.ramo.cam {
+  stroke: var(--acento);
+  stroke-width: 2.4;
+}
+.no {
+  fill: var(--painel);
+  stroke: var(--linha);
+  stroke-width: 1;
+  cursor: pointer;
+}
+.no.fib {
+  fill: var(--fibra);
+  stroke: var(--fibra);
+}
+.no.cam {
+  fill: var(--acento);
+  stroke: var(--acento);
+}

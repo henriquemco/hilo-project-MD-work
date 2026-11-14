@@ -1,13 +1,7 @@
 # Hi-Lo competitivo: calculadora combinatória e visualizador interativo
 
 Implementações computacionais que acompanham o trabalho _Árvores e grafos de estados em uma
-variante competitiva de Hi-Lo_ (Matemática Discreta). As referências a seções, teoremas e
-tabelas são às do rascunho de 24 de outubro de 2026.
-
-| Arquivo             | Linguagem                                           | Função                                                                                                |
-| ------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `hilo_calc.py`      | Python 3 (só biblioteca padrão)                     | Calculadora: contagens exatas por fórmula, enumeração de finais pequenos e verificação dos enunciados |
-| `visualizador.html` | HTML + JavaScript (arquivo único, sem dependências) | Visualizador: desenha a árvore de históricos e o grafo de estados e permite explorá-los               |
+variante competitiva de Hi-Lo_ (Matemática Discreta).
 
 As duas ferramentas implementam o mesmo modelo de forma independente. Isso é proposital: a
 concordância entre elas (e com as tabelas do trabalho) é um teste cruzado.
@@ -176,21 +170,12 @@ conferi-los por enumeração).
 
 ## 4. Visualizador interativo (`visualizador.html`)
 
-### 4.1 Arquitetura
-
-O arquivo tem dois blocos de script.
-
-- **`nucleo`**: o modelo matemático, sem acesso à página. Contém `acerta`, `chave`,
-  `transicao`, `construirGrafo`, `construirArvore`, `formulas` (em `BigInt`),
-  `arvoreGeradora` e `cicloQuatro`.
-- **`interface`**: disposição, desenho em SVG e eventos.
-
 A interface segue um único princípio: o objeto `app` guarda todo o estado da aplicação
 (composição, grafo, árvore, partida em andamento, estado selecionado, opções), e `render()`
 redesenha tudo a partir dele. Cada interação altera um campo de `app` e chama `render()`.
 Não há estado escondido nos elementos da página.
 
-### 4.2 A projeção árvore → grafo
+### 4.1 A projeção árvore → grafo
 
 Cada nó da árvore guarda a chave do seu estado, isto é, a imagem pela aplicação
 $\pi : \{\text{históricos}\} \to \{\text{estados}\}$. Essa aplicação preserva camadas e leva
@@ -202,7 +187,7 @@ arestas em arestas. As interações existem para torná-la visível nos dois sen
 - **clique em um nó da árvore**: carrega aquele histórico como partida e destaca o caminho
   correspondente no grafo.
 
-### 4.3 Disposição
+### 4.2 Disposição
 
 **Grafo** (`disporGrafo`). A coordenada vertical é a camada $m$, o que torna a Proposição
 3.1(i) visível: toda aresta desce exatamente um nível. Dentro da camada, os estados são
@@ -214,7 +199,7 @@ arestas de erro, tracejadas.
 **Árvore** (`disporArvore`). As folhas ficam igualmente espaçadas na ordem de uma busca em
 profundidade e cada nó interno fica centrado sobre os filhos.
 
-### 4.4 Funções da página
+### 4.3 Funções da página
 
 - **Contagens**: fórmula ao lado do valor enumerado para $\lvert V\rvert$, $\lvert E\rvert$,
   $\beta$, terminais e folhas, com marca de concordância, e a tabela por camada (o mesmo
@@ -227,34 +212,3 @@ profundidade e cada nó interno fica centrado sobre os filhos.
   $\beta$ "enumerado" do painel é a contagem dessas arestas.
 - **Menor ciclo**: destaca a configuração $u, v, a, b$ da Figura 1, encontrada por
   `cicloQuatro`. Para $N \le 2$ a página informa que o grafo associado é uma árvore.
-
-### 4.5 Limites de tamanho
-
-| Constante     | Valor          | Efeito                                                             |
-| ------------- | -------------- | ------------------------------------------------------------------ |
-| `LIM_ARVORE`  | 800 nós        | acima disso a árvore não é desenhada (só o seu tamanho é mostrado) |
-| `LIM_DESENHO` | 700 estados    | acima disso o grafo não é desenhado, mas continua enumerado        |
-| `LIM_ENUM`    | 20.000 estados | acima disso só as fórmulas são mostradas                           |
-
-Exemplos: `[6,7,7]` e `[6,6,7,7]` desenham as duas representações (115 e 691 nós na árvore);
-`(2,2,2,2)` é enumerado, mas não desenhado. A árvore cresce como
-$3^N N!/\prod C_i!$, de modo que deixa de ser desenhável já com cinco cartas na maioria das
-composições. Isso ilustra a comparação de crescimento da Seção 3.3.
-
-## 5. Testes realizados
-
-1. `hilo_calc.py --teste`: 386 grafos, todos os testes da §3.6 aprovados.
-2. O núcleo JavaScript foi executado isoladamente e comparado com a Tabela 3 e com as
-   fórmulas para (3), (1,2), (2,2), (2,2,2,2) e (1,1).
-3. A página foi aberta em navegador automatizado: construção dos exemplos, partida, seleção
-   de estado, clique na árvore, árvore geradora e menor ciclo, sem erros no console.
-
-## 6. Limitações
-
-- A enumeração é exponencial em $N$; para o baralho completo só as fórmulas se aplicam.
-- A fórmula de $\lvert E\rvert$ (§3.3) está verificada por enumeração em 386 grafos, mas sua
-  demonstração aqui é um esboço.
-- A ordem horizontal dos estados no desenho é fixa (por bloco e por $d$) e não minimiza
-  cruzamentos de arestas.
-- Nenhuma das ferramentas calcula estratégias ou probabilidades, que estão fora do objetivo
-  do trabalho.
